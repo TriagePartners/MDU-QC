@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDU Job Entry | Triage Partners</title>
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Triage Partners look — matches the Field Partners registration site */
+:root{
+  --red:#F32735; --red-dark:#C81E2B; --ink:#111; --text:#333; --muted:#69727D;
+  --line:#E3E5E8; --bg:#F6F7F8; --card:#fff; --ok:#1E7F4F; --err:#C81E2B; --warn:#B45309;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:var(--bg);font-size:15px;line-height:1.55}
+h1,h2,h3{font-family:Rajdhani,Poppins,sans-serif;color:var(--ink);line-height:1.1;margin:0}
+a{color:var(--red)}
+.hidden{display:none !important}
+
+.hero{background:#000;color:#fff;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(243,39,53,.55),rgba(243,39,53,0) 70%)}
+.hero-inner{max-width:1080px;margin:0 auto;padding:28px 20px 56px;position:relative;z-index:1}
+.logo{height:44px;width:auto;display:block}
+.eyebrow{margin-top:36px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);font-weight:600}
+.hero h1{color:#fff;font-size:clamp(32px,5vw,48px);margin-top:8px}
+.hero p{max-width:640px;color:#CFD2D6;margin:12px 0 0}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+.panel h3{font-size:20px;margin-bottom:10px}
+.hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+label.f{display:block;font-weight:500;color:var(--ink);font-size:14px;margin-bottom:6px}
+.req{color:var(--red)}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=search],input[type=date],select,textarea{
+  width:100%;font:inherit;color:var(--ink);background:#fff;border:1px solid #CDD1D6;border-radius:8px;padding:11px 12px;transition:border-color .15s,box-shadow .15s}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(243,39,53,.15)}
+.invalid input,.invalid select,.invalid textarea{border-color:var(--err)}
+.btn{font:inherit;font-weight:600;border:0;border-radius:8px;padding:12px 26px;cursor:pointer;transition:background .15s;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{background:var(--red-dark)}
+.btn-primary[disabled]{opacity:.6;cursor:wait}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-outline{background:#fff;color:var(--ink);border:1px solid #CDD1D6}
+.btn-outline:hover{border-color:var(--ink)}
+.btn-ghost{background:transparent;color:var(--ink);padding-left:0}
+.btn-ghost:hover{color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;padding:7px 12px;border:1px solid #CDD1D6;border-radius:999px;font-size:13.5px;cursor:pointer;user-select:none;background:#fff;transition:all .12s}
+.chip input:checked+span{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip input:focus-visible+span{box-shadow:0 0 0 3px rgba(243,39,53,.3)}
+.states{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
+.states .chip span{width:100%;text-align:center;padding:8px 0;border-radius:6px}
+.alert{display:none;margin-top:18px;padding:12px 14px;border-radius:8px;background:#FDECEE;color:var(--err);font-size:14px}
+.alert.show{display:block}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.s-Pending{background:#FEF3C7;color:var(--warn)} .s-Approved{background:#DCFCE7;color:var(--ok)}
+.s-NeedsFix{background:#FFEDD5;color:#C2410C} .s-Rejected{background:#FDECEE;color:var(--err)}
+footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px}
+</style>
+<style>
+  .wrap{max-width:1080px;margin:-28px auto 40px;padding:0 20px;display:grid;grid-template-columns:1fr 300px;gap:24px;position:relative;z-index:2;align-items:start}
+  .side{display:flex;flex-direction:column;gap:16px;position:sticky;top:16px}
+  @media (max-width:860px){.wrap{grid-template-columns:1fr}.side{position:static}}
+  .main{display:flex;flex-direction:column;gap:16px}
+  .sec{padding:26px}
+  .sec-h{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .sec-h .n{flex:none;width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:600}
+  .sec-h h2{font-size:24px}
+  .sec-h .opt{margin-left:auto;font-size:12.5px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px}
+  .full{grid-column:1/-1}
+  @media (max-width:620px){.grid{grid-template-columns:1fr}.sec{padding:20px}}
+  .me{display:flex;align-items:center;gap:12px;font-size:14px}
+  .me .av{width:38px;height:38px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-weight:600;flex:none}
+  .me b{color:var(--ink);font-weight:600;display:block}
+  .me button{margin-left:auto;padding:6px 0}
+  /* line items */
+  .line{display:grid;grid-template-columns:1fr 150px 36px;gap:10px;align-items:start;margin-bottom:10px}
+  @media (max-width:620px){.line{grid-template-columns:1fr 1fr 36px}.line .code{grid-column:1/-1}}
+  .qty{position:relative}
+  .qty input{padding-right:46px}
+  .qty .um{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12.5px;font-weight:600;color:var(--muted);pointer-events:none}
+  .x{width:36px;height:44px;border:0;background:transparent;color:var(--muted);font-size:22px;cursor:pointer;border-radius:8px}
+  .x:hover{color:var(--red);background:var(--bg)}
+  .line .desc{grid-column:1/-1;margin-top:-4px;font-size:12.5px;color:var(--muted)}
+  .add-line{padding:8px 0}
+  /* photos */
+  .drop{border:2px dashed #CDD1D6;border-radius:var(--radius);padding:22px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s}
+  .drop:hover{border-color:var(--red)}
+  .drop .big{font-family:Rajdhani,sans-serif;font-size:20px;font-weight:700;color:var(--ink)}
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:14px}
+  .ph{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--line)}
+  .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .ph .rm{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;cursor:pointer;font-size:14px;line-height:1}
+  .ph.up::after{content:"✓";position:absolute;bottom:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--ok);color:#fff;font-size:12px;display:grid;place-items:center}
+  .ph.up .rm{display:none}
+  .pcount{font-weight:600;color:var(--ink)} .pcount.low{color:var(--err)}
+  /* submit */
+  .submit-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .submit-row .btn{min-width:200px}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:14px;display:none}
+  .bar div{height:100%;width:0;background:var(--red);transition:width .2s}
+  .status{font-size:14px;color:var(--muted)}
+  .info ol{margin:0;padding-left:18px;font-size:14px} .info li{margin-bottom:6px}
+  .done-card{text-align:center;padding:44px 22px}
+  .done-icon{width:64px;height:64px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;margin:0 auto 18px;font-size:30px}
+  .done-card h2{font-size:30px}
+  .done-card p{max-width:520px;margin:12px auto 22px}
+  .ref{display:inline-block;margin-top:4px;font-family:ui-monospace,Menlo,monospace;background:var(--bg);padding:6px 12px;border-radius:6px;font-size:13px}
+</style>
+</head>
+<body>
+<header class="hero"><div class="hero-inner">
+  <img class="logo" src="https://triage-partners.com/wp-content/uploads/2021/12/TriagePartners_Wht@4x-8.png" alt="Triage Partners">
+  <div class="eyebrow">MDU Installs · QC Submission</div>
+  <h1>MDU Job Entry</h1>
+  <p>Submit each completed MDU job with its unit codes and QC photos. A Triage supervisor reviews it, and approved work is what we match against your invoice.</p>
+</div></header>
+
+<div class="wrap" id="formWrap">
+  <div class="main">
+    <!-- 1. You -->
+    <section class="panel sec">
+      <div class="sec-h"><span class="n">1</span><h2>Your info</h2></div>
+      <div id="meCard" class="me hidden"><span class="av" id="meAv"></span><div><b id="meName"></b><span id="meCo"></span></div>
+        <button type="button" class="btn btn-ghost" id="editMe">Change</button></div>
+      <div id="meForm" class="grid">
+        <div><label class="f" for="techName">Your name <span class="req">*</span></label><input type="text" id="techName" autocomplete="name"></div>
+        <div><label class="f" for="company">Company <span class="req">*</span></label><input type="text" id="company" autocomplete="organization" placeholder="Same name as on your invoices"></div>
+        <div class="full"><label class="f" for="email">Email</label><input type="email" id="email" autocomplete="email">
+          <div class="hint">Optional — we'll email you if a job needs a fix. Saved on this device for next time.</div></div>
+      </div>
+    </section>
+
+    <!-- 2. Job -->
+    <section class="panel sec">
+      <div class="sec-h"><span class="n">2</span><h2>Job</h2></div>
+      <div class="grid">
+        <div class="full"><label class="f">State <span class="req">*</span></label><div class="states" id="states"></div></div>
+        <div><label class="f" for="projectNumber">Project # <span class="req">*</span></label><input type="text" id="projectNumber" inputmode="numeric" placeholder="e.g. 2592445"></div>
+        <div><label class="f" for="apartment">Building / Apt</label><input type="text" id="apartment" placeholder="e.g. Bldg A, All"></div>
+        <div class="full"><label class="f" for="address">Work location address <span class="req">*</span></label><input type="text" id="address" autocomplete="street-address" placeholder="e.g. 4 Andover Rd, Athens, OH 45701"></div>
+      </div>
+    </section>
+
+    <!-- 3. Work -->
+    <section class="panel sec">
+      <div class="sec-h"><span class="n">3</span><h2>Work completed</h2></div>
+      <div id="lines"></div>
+      <button type="button" class="btn btn-ghost add-line" id="addLine">+ Add another unit code</button>
+    </section>
+
+    <!-- 4. Photos -->
+    <section class="panel sec">
+      <div class="sec-h"><span class="n">4</span><h2>QC photos</h2><span class="opt"><span class="pcount" id="pcount">0</span> added · min <span id="minP"></span></span></div>
+      <div class="drop" id="drop" role="button" tabindex="0"><div class="big">📷 Take or add photos</div><div class="hint">Select several at once. Photos are resized on your phone so they upload fast.</div></div>
+      <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
+      <div class="thumbs" id="thumbs"></div>
+    </section>
+
+    <!-- 5. Comments -->
+    <section class="panel sec">
+      <div class="sec-h"><span class="n">5</span><h2>Comments</h2><span class="opt">Optional</span></div>
+      <textarea id="comments" placeholder='Same as your invoice comment — e.g. "Ran 340 ft in 24 units"'></textarea>
+      <div style="margin-top:18px" id="turnstile"></div>
+      <div class="alert" id="alert"></div>
+      <div class="bar" id="bar"><div></div></div>
+      <div class="submit-row" style="margin-top:18px">
+        <button type="button" class="btn btn-primary" id="submitBtn">Submit job</button>
+        <span class="status" id="status"></span>
+      </div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel info">
+      <h3>Photo checklist</h3>
+      <ol>
+        <li>Building entrance / address with the GPS stamp on.</li>
+        <li>Terminal / FDH location — open and closed.</li>
+        <li>Riser and conduit path, start to finish.</li>
+        <li>Each unit entry point and final termination.</li>
+        <li>Labels and any cleanup.</li>
+      </ol>
+      <p class="hint" style="margin-top:12px">Missing or unclear photos are the #1 reason a job comes back as “Needs fix”.</p>
+    </div>
+  </aside>
+</div>
+
+<div class="wrap hidden" id="doneWrap" style="grid-template-columns:1fr">
+  <section class="panel done-card">
+    <div class="done-icon">✓</div>
+    <h2>Job submitted</h2>
+    <div class="ref" id="doneRef"></div>
+    <p id="doneText"></p>
+    <button type="button" class="btn btn-primary" id="another">Enter another job</button>
+  </section>
+</div>
+
+<footer>© <span id="yr"></span> Triage Partners, LLC · 205 S Hoover Blvd, Suite 401, Tampa, FL 33609</footer>
+
+<script>
+// ===== SETTINGS — edit these, nothing else needs to change =====
+window.MDU_CONFIG = {
+  apiBase: "https://triage-mdu-qc.YOUR-SUBDOMAIN.workers.dev", // Cloudflare Worker URL (from wrangler deploy)
+  turnstileSiteKey: "",            // Cloudflare Turnstile site key (bot check). Blank = off.
+  states: ["IL", "IN", "MI", "MN", "OH", "WI", "WV", "CA"],
+  minPhotos: 3,
+  maxPhotos: 40,
+  photoMaxSide: 1600,              // px; photos are shrunk to this on the phone
+};
+
+// Generated from 'Tech Billing Codes Rates April 2026.xlsx' (UnitDtl-InfoOnly). Rates intentionally left out — this site is public.
+// common: shown at the top of the picker. caOnly: only offered when State = CA.
+window.MDU_UNITS = [
+  {
+   "code": "NB31C",
+   "desc": "Place MDU Interior Conduit/Molding",
+   "um": "FT",
+   "common": true,
+   "caOnly": false
+  },
+  {
+   "code": "NB31J",
+   "desc": "Place MDU Riser Path",
+   "um": "FT",
+   "common": true,
+   "caOnly": false
+  },
+  {
+   "code": "NB31T",
+   "desc": "Turnkey Construction Per Living Unit - MDU 1-39 Units",
+   "um": "EA",
+   "common": true,
+   "caOnly": false
+  },
+  {
+   "code": "NB31U",
+   "desc": "Turnkey Construction Per Living Unit - MDU 40-99 Units",
+   "um": "EA",
+   "common": true,
+   "caOnly": false
+  },
+  {
+   "code": "NB31V",
+   "desc": "Turnkey Construction Per Living Unit - MDU 100 Units+",
+   "um": "EA",
+   "common": true,
+   "caOnly": false
+  },
+  {
+   "code": "NBS56",
+   "desc": "MDU - Fusion Splice Fiber Optic Cable - 1 to 39 MDUs",
+   "um": "EA",
+   "common": true,
+   "caOnly": false
+  },
+  {
+   "code": "NBS57",
+   "desc": "MDU - Fusion Splice Fiber Optic Cable - 40 & Over MDUs",
+   "um": "EA",
+   "common": true,
+   "caOnly": false
+  },
+  {
+   "code": "NBS58",
+   "desc": "Fusion Splice Fiber Cable (MDU Environment) - 100 & Above",
+   "um": "EA",
+   "common": true,
+   "caOnly": false
+  },
+  {
+   "code": "NB000",
+   "desc": "Place Pole Mounted Fiber Distribution Hub (FDH)",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB022",
+   "desc": "Terminate Drop",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB047",
+   "desc": "Place S-One Cabinet",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB30H",
+   "desc": "Drop Placement Greenfield with Entry to SFU 400 ft less",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB30I",
+   "desc": "Drop Placement Greenfield with Entry 2-39 Units SFU 400 ft less",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB30J",
+   "desc": "Drop Placement Greenfield with Entry 40+ Units SFU 400 ft less",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB30K",
+   "desc": "Drop Placement Greenfield with no Entry SFU 400 ft less",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB30L",
+   "desc": "Drop Placement Greenfield with no Entry 2-39 Units SFU 400 ft Less",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB30M",
+   "desc": "Drop Placement Greenfield with no Entry 40+ Units SFU 400 ft Less",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31A",
+   "desc": "Place MDU Drop or COAX Cable (Not in Conduit)",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31B",
+   "desc": "Remove MDU Drop (Not in Conduit)",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31D",
+   "desc": "Place MDU Drop or COAX Cable Within Conduit/Molding",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31E",
+   "desc": "Remove MDU Drop Within Conduit/Molding",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31F",
+   "desc": "Place MDU Riser Cable",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31G",
+   "desc": "Remove MDU Riser Cable",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31H",
+   "desc": "Place MDU Riser Cable (In Conduit)",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31I",
+   "desc": "Remove MDU Riser Cable (In Conduit)",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31K",
+   "desc": "FDT Wall/Rack Terminal Tail 25 ft Less",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31L",
+   "desc": "FDT Removal Wall/Rack Terminal Tail 25 ft Less",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31M",
+   "desc": "Place FDH Wall/Rack/Communication Closet",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB31Z",
+   "desc": "Place Interior FDT Storage Box",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB32A",
+   "desc": "Place Cable/Krone Block(s) For MDU MC ONT",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB32B",
+   "desc": "Place MDU MC ONT Incremental Cables and/or Wiring",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB32C",
+   "desc": "Place Additional MDU MC ONT at an Existing Location (Wall or Rack Mounted)",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB32E",
+   "desc": "Place Initial Wall Mounted MDU MC ONT",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB32F",
+   "desc": "Place Initial Rack & MDU MC ONT",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB32G",
+   "desc": "Place Electrical Conduit (Not Riser Only or Basement)",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB32H",
+   "desc": "Place Electrical Conduit (Riser Only or Basement)",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33A",
+   "desc": "Turnkey Construction (Overlay/SFU) MDU - 1 TO 39 LU No Entry",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33B",
+   "desc": "Turnkey Construction (Overlay/SFU) MDU - 40 TO 99 LU No Entry",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33C",
+   "desc": "Turnkey Construction (Overlay/SFU) MDU - 100 & Above LU No Entry",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33D",
+   "desc": "Turnkey Construction (Greenfield) MDU - 1 to 39 Living Units",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33E",
+   "desc": "Turnkey Construction (Greenfield) MDU - 40 to 99 Living Units",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33F",
+   "desc": "Turnkey Construction (Greenfield) MDU - 100 & Above Living Units",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33K",
+   "desc": "All ENV, S, PL, TK CNST SFU/MTU/MDU - 1 Pass PC W/ENT, 1-39 Living Units",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33L",
+   "desc": "All ENV, S, PL, TK CNST SFU/MTU/MDU - 1 Pass PC W/ENT, 40-99 Living Units",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33M",
+   "desc": "All ENV, S, PL, TK CNST SFU/MTU/MDU - 1 Pass PC W/ENT, > 100 Living Units",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33N",
+   "desc": "All ENV, S, PL, TK CNST SFU/MTU/MDU - 1 Pass PC W/O ENT, 1-39 Living Units",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33O",
+   "desc": "All ENV, S, PL, TK CNST SFU/MTU/MDU - 1 Pass PC W/O ENT, 40-99 Living Units",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33P",
+   "desc": "All ENV, S, PL, TK CNST SFU/MTU/MDU - 1 Pass PC W/O ENT, 100 Living Units",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33R",
+   "desc": "All ENV, S, PL, IW, ADDR Per RM Over 2 W/MDU PC",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB33S",
+   "desc": "All ENV, S, PL, IW, ADDR PER RM OVER 2 W/MDU PC",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NB34A",
+   "desc": "Core Bore 2.1 ft - 4 ft Hole Through up to 24 ft Material",
+   "um": "EA",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NBD10",
+   "desc": "Exterior Wire Assembler - 1-200 ft",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NBD11",
+   "desc": "Exterior Wire Assembler - 201 ft +",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NBD12",
+   "desc": "Place Interior Fiber Drop to Living Unit LU in MDU",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NBD13",
+   "desc": "Place Additional Wire/Cable/Fiber/Inner Duct/Micro Duct/Quad Duct",
+   "um": "FT",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NBL02",
+   "desc": "MDU Meeting",
+   "um": "HR",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "NSS01",
+   "desc": "Site Survey",
+   "um": "HR",
+   "common": false,
+   "caOnly": false
+  },
+  {
+   "code": "B71G",
+   "desc": "Material charge approval needed 10% MARKUP",
+   "um": "EA",
+   "common": false,
+   "caOnly": true
+  },
+  {
+   "code": "B87C",
+   "desc": "Hand rod/blow pull tape or rope in existing occupied conduit",
+   "um": "FT",
+   "common": false,
+   "caOnly": true
+  },
+  {
+   "code": "B999",
+   "desc": "FTTP - MISCELLANEOUS",
+   "um": "EA",
+   "common": false,
+   "caOnly": true
+  },
+  {
+   "code": "BL70",
+   "desc": "foreman",
+   "um": "HR",
+   "common": false,
+   "caOnly": true
+  },
+  {
+   "code": "BL72",
+   "desc": "splicing",
+   "um": "HR",
+   "common": false,
+   "caOnly": true
+  },
+  {
+   "code": "BL74",
+   "desc": "Journeymen",
+   "um": "HR",
+   "common": false,
+   "caOnly": true
+  },
+  {
+   "code": "BL76",
+   "desc": "helper",
+   "um": "HR",
+   "common": false,
+   "caOnly": true
+  },
+  {
+   "code": "P71P",
+   "desc": "Trip Charge",
+   "um": "EA",
+   "common": false,
+   "caOnly": true
+  }
+];
+</script>
+<script>
+const C = window.MDU_CONFIG, U = window.MDU_UNITS;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const store = { get(k){ try { return localStorage.getItem("mduqc_" + k) || ""; } catch { return ""; } }, set(k, v){ try { localStorage.setItem("mduqc_" + k, v); } catch {} } };
+let photos = [], nextN = 0, session = null, busy = false, tsWidget = null;
+$("yr").textContent = new Date().getFullYear();
+if (/YOUR-SUBDOMAIN/.test(C.apiBase) || location.protocol === "file:") {
+  const b = document.createElement("div"); b.className = "alert show"; b.style.margin = "0 0 4px";
+  b.textContent = "Preview mode — this page isn't connected yet, so submissions won't send. See README setup steps 3–4.";
+  document.querySelector(".main").prepend(b);
+}
+$("minP").textContent = C.minPhotos;
+
+/* ---- your info (remembered) ---- */
+["techName", "company", "email"].forEach(k => $(k).value = store.get(k));
+function showMe(collapse) {
+  const ok = $("techName").value.trim() && $("company").value.trim();
+  $("meCard").classList.toggle("hidden", !(ok && collapse)); $("meForm").classList.toggle("hidden", !!(ok && collapse));
+  $("meAv").textContent = $("techName").value.trim().split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  $("meName").textContent = $("techName").value; $("meCo").textContent = $("company").value;
+}
+$("editMe").onclick = () => { $("meCard").classList.add("hidden"); $("meForm").classList.remove("hidden"); $("techName").focus(); };
+showMe(true);
+
+/* ---- state chips ---- */
+$("states").innerHTML = C.states.map(s => `<label class="chip"><input type="radio" name="state" value="${s}"><span>${s}</span></label>`).join("");
+const getState = () => (document.querySelector('input[name=state]:checked') || {}).value || "";
+const lastState = store.get("state"); if (lastState) { const r = document.querySelector(`input[name=state][value="${lastState}"]`); if (r) r.checked = true; }
+$("states").onchange = () => { document.querySelectorAll(".line select").forEach(fillCodes); };
+
+/* ---- unit code lines ---- */
+function fillCodes(sel) {
+  const cur = sel.value, st = getState();
+  const ok = U.filter(u => !u.caOnly || st === "CA");
+  const opt = (u) => `<option value="${u.code}">${u.code} — ${esc(u.desc)}</option>`;
+  sel.innerHTML = `<option value="">Select unit code…</option><optgroup label="Common MDU codes">${ok.filter(u => u.common).map(opt).join("")}</optgroup><optgroup label="All codes">${ok.filter(u => !u.common).map(opt).join("")}</optgroup>`;
+  if (ok.some(u => u.code === cur)) sel.value = cur;
+  sel.dispatchEvent(new Event("change"));
+}
+function addLine() {
+  const row = document.createElement("div"); row.className = "line";
+  row.innerHTML = `<div class="code"><select aria-label="Unit code"></select></div>
+    <div class="qty"><input type="number" inputmode="decimal" min="0" step="any" placeholder="Qty" aria-label="Quantity"><span class="um">QTY</span></div>
+    <button type="button" class="x" aria-label="Remove line">×</button><div class="desc"></div>`;
+  const sel = row.querySelector("select");
+  sel.onchange = () => { const u = U.find(u => u.code === sel.value); row.querySelector(".um").textContent = u ? u.um : "QTY";
+    row.querySelector("input").placeholder = u ? (u.um === "FT" ? "Feet" : u.um === "HR" ? "Hours" : "Units") : "Qty"; };
+  row.querySelector(".x").onclick = () => { if ($("lines").children.length > 1) row.remove(); else { sel.value = ""; sel.onchange(); row.querySelector("input").value = ""; } };
+  $("lines").appendChild(row); fillCodes(sel);
+}
+$("addLine").onclick = addLine; addLine();
+const getLines = () => [...document.querySelectorAll(".line")].map(r => {
+  const u = U.find(u => u.code === r.querySelector("select").value); const q = r.querySelector("input").value;
+  return u ? { code: u.code, desc: u.desc, um: u.um, qty: q === "" ? NaN : Number(q), row: r } : (q ? { code: "", qty: Number(q), row: r } : null);
+}).filter(Boolean);
+
+/* ---- photos ---- */
+$("drop").onclick = () => $("fileInput").click();
+$("drop").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("fileInput").click(); } };
+$("fileInput").onchange = async (e) => {
+  const files = [...e.target.files]; e.target.value = "";
+  for (const f of files) {
+    if (photos.length >= C.maxPhotos) { alertMsg(`Max ${C.maxPhotos} photos per job.`); break; }
+    try { const blob = await shrink(f, C.photoMaxSide, 0.82); photos.push({ n: nextN++, blob, url: URL.createObjectURL(blob), up: false }); }
+    catch { alertMsg("One photo couldn't be read — try adding it again."); }
+    renderPhotos();
+  }
+};
+async function shrink(file, maxSide, q) {
+  const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+  const s = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(), "image/jpeg", q));
+}
+function renderPhotos() {
+  $("thumbs").innerHTML = "";
+  photos.forEach(p => {
+    const d = document.createElement("div"); d.className = "ph" + (p.up ? " up" : "");
+    d.innerHTML = `<img src="${p.url}" alt=""><button type="button" class="rm" aria-label="Remove photo">×</button>`;
+    d.querySelector(".rm").onclick = () => { if (busy) return; URL.revokeObjectURL(p.url); photos = photos.filter(x => x !== p); renderPhotos(); };
+    $("thumbs").appendChild(d);
+  });
+  $("pcount").textContent = photos.length; $("pcount").classList.toggle("low", photos.length < C.minPhotos);
+}
+
+/* ---- bot check ---- */
+window.onTurnstileLoad = () => { tsWidget = turnstile.render("#turnstile", { sitekey: C.turnstileSiteKey, appearance: "interaction-only" }); };
+if (C.turnstileSiteKey) { const s = document.createElement("script"); s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit"; s.async = true; document.head.appendChild(s); }
+const tsToken = () => (window.turnstile && tsWidget != null) ? turnstile.getResponse(tsWidget) : "";
+
+/* ---- submit ---- */
+function alertMsg(t) { $("alert").textContent = t || ""; $("alert").classList.toggle("show", !!t); }
+function mark(el, bad) { (el.closest(".full, .grid > div, .line, section") || el).classList.toggle("invalid", bad); }
+const v = (id) => $(id).value.trim();
+$("formWrap").addEventListener("input", (e) => { const inv = e.target.closest(".invalid"); if (inv) inv.classList.remove("invalid"); });
+$("formWrap").addEventListener("change", (e) => { const inv = e.target.closest(".invalid"); if (inv) inv.classList.remove("invalid"); });
+async function post(path, body, isJson = true) {
+  const r = await fetch(C.apiBase + path, { method: "POST", headers: { "content-type": isJson ? "application/json" : "image/jpeg" }, body: isJson ? JSON.stringify(body) : body });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || `Upload failed (${r.status}). Check your signal and try again.`), { status: r.status });
+  return d;
+}
+async function retry(fn, n = 3) { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= n - 1 || (e.status && e.status < 500 && e.status !== 429)) throw e; await new Promise(r => setTimeout(r, 1500 * (i + 1))); } } }
+
+$("submitBtn").onclick = async () => {
+  if (busy) return;
+  alertMsg("");
+  const lines = getLines(), state = getState(), miss = [];
+  document.querySelectorAll(".invalid").forEach(e => e.classList.remove("invalid"));
+  if (!v("techName")) { miss.push("your name"); $("editMe").click(); mark($("techName"), true); }
+  if (!v("company")) { miss.push("company"); $("editMe").click(); mark($("company"), true); }
+  if (!state) miss.push("state");
+  if (!v("projectNumber")) { miss.push("project #"); mark($("projectNumber"), true); }
+  if (!v("address")) { miss.push("work location address"); mark($("address"), true); }
+  const badLines = lines.filter(l => !l.code || !(l.qty > 0));
+  badLines.forEach(l => l.row.classList.add("invalid"));
+  if (!lines.length) miss.push("at least one unit code"); else if (badLines.length) miss.push("a unit code and quantity on every line");
+  if (photos.length < C.minPhotos) miss.push(`at least ${C.minPhotos} photos`);
+  if (miss.length) { alertMsg("Still needed: " + miss.join(", ") + "."); return; }
+
+  ["techName", "company", "email"].forEach(k => store.set(k, v(k))); store.set("state", state);
+  busy = true; $("submitBtn").disabled = true; $("bar").style.display = "block";
+  const setBar = (f) => $("bar").firstElementChild.style.width = (f * 100) + "%";
+  try {
+    const key = state + "|" + v("projectNumber");
+    if (!session || session.key !== key) {          // new job folder (first try, or project/state changed)
+      $("status").textContent = "Starting…";
+      const s = await post("/start", { turnstileToken: tsToken(), projectNumber: v("projectNumber"), state });
+      session = { ...s, key }; photos.forEach(p => p.up = false); renderPhotos();
+      if (window.turnstile && tsWidget != null) turnstile.reset(tsWidget);
+    }
+    let done = photos.filter(p => p.up).length; setBar(done / (photos.length + 1));
+    const queue = photos.filter(p => !p.up);
+    const worker = async () => { while (queue.length) { const p = queue.shift();
+      $("status").textContent = `Uploading photo ${done + 1} of ${photos.length}…`;
+      await retry(() => post(`/photo?t=${encodeURIComponent(session.ticket)}&n=${p.n}`, p.blob, false));
+      p.up = true; done++; setBar(done / (photos.length + 1)); renderPhotos(); } };
+    await Promise.all([worker(), worker(), worker()]);
+    $("status").textContent = "Saving job…";
+    const body = { ticket: session.ticket, techName: v("techName"), company: v("company"), email: v("email"), state,
+      projectNumber: v("projectNumber"), apartment: v("apartment"), address: v("address"), comments: v("comments"),
+      lines: lines.map(({ code, desc, um, qty }) => ({ code, desc, um, qty })), photoCount: photos.length };
+    const res = await retry(() => post("/submit", body));
+    setBar(1);
+    $("doneRef").textContent = "QC Job #" + res.num;
+    $("doneText").textContent = `Project ${body.projectNumber} · ${lines.map(l => `${l.code} × ${l.qty} ${l.um}`).join(", ")} · ${photos.length} photos. A supervisor will review it${body.email ? " and email you if anything needs fixing" : ""}.`;
+    $("formWrap").classList.add("hidden"); $("doneWrap").classList.remove("hidden"); window.scrollTo(0, 0);
+  } catch (e) {
+    if (e.status === 401) session = null;
+    alertMsg(e.message + " Your photos are still here — tap Submit to try again.");
+  } finally { busy = false; $("submitBtn").disabled = false; $("status").textContent = ""; setTimeout(() => $("bar").style.display = "none", 400); }
+};
+
+$("another").onclick = () => {
+  photos.forEach(p => URL.revokeObjectURL(p.url)); photos = []; nextN = 0; session = null;
+  ["projectNumber", "apartment", "address", "comments"].forEach(k => $(k).value = "");
+  $("lines").innerHTML = ""; addLine(); renderPhotos(); alertMsg(""); showMe(true);
+  $("doneWrap").classList.add("hidden"); $("formWrap").classList.remove("hidden"); window.scrollTo(0, 0);
+};
+window.addEventListener("beforeunload", (e) => { if (photos.length && $("doneWrap").classList.contains("hidden")) { e.preventDefault(); e.returnValue = ""; } });
+renderPhotos();
+</script>
+</body>
+</html>

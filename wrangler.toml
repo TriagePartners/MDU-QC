@@ -1,0 +1,18 @@
+name = "triage-mdu-qc"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://triagepartners.github.io"
+SP_HOSTNAME = "triagepartners.sharepoint.com"
+SP_SITE_PATH = "/sites/MDUQC"
+LIST_NAME = "MDU QC Jobs"
+PHOTO_ROOT = "MDU QC Photos"
+
+# Secrets — set with `npx wrangler secret put NAME` (never commit these):
+#   MS_TENANT_ID       Microsoft tenant ID
+#   MS_CLIENT_ID       App registration (client) ID
+#   MS_CLIENT_SECRET   App registration client secret
+#   TICKET_SECRET      any long random string
+#   TURNSTILE_SECRET   Cloudflare Turnstile secret key
+#   SETUP_KEY          any random string, used once for /admin/setup

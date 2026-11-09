@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDU QC Review | Triage Partners</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Triage Partners look — matches the Field Partners registration site */
+:root{
+  --red:#F32735; --red-dark:#C81E2B; --ink:#111; --text:#333; --muted:#69727D;
+  --line:#E3E5E8; --bg:#F6F7F8; --card:#fff; --ok:#1E7F4F; --err:#C81E2B; --warn:#B45309;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:var(--bg);font-size:15px;line-height:1.55}
+h1,h2,h3{font-family:Rajdhani,Poppins,sans-serif;color:var(--ink);line-height:1.1;margin:0}
+a{color:var(--red)}
+.hidden{display:none !important}
+
+.hero{background:#000;color:#fff;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(243,39,53,.55),rgba(243,39,53,0) 70%)}
+.hero-inner{max-width:1080px;margin:0 auto;padding:28px 20px 56px;position:relative;z-index:1}
+.logo{height:44px;width:auto;display:block}
+.eyebrow{margin-top:36px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);font-weight:600}
+.hero h1{color:#fff;font-size:clamp(32px,5vw,48px);margin-top:8px}
+.hero p{max-width:640px;color:#CFD2D6;margin:12px 0 0}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+.panel h3{font-size:20px;margin-bottom:10px}
+.hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+label.f{display:block;font-weight:500;color:var(--ink);font-size:14px;margin-bottom:6px}
+.req{color:var(--red)}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=search],input[type=date],select,textarea{
+  width:100%;font:inherit;color:var(--ink);background:#fff;border:1px solid #CDD1D6;border-radius:8px;padding:11px 12px;transition:border-color .15s,box-shadow .15s}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(243,39,53,.15)}
+.invalid input,.invalid select,.invalid textarea{border-color:var(--err)}
+.btn{font:inherit;font-weight:600;border:0;border-radius:8px;padding:12px 26px;cursor:pointer;transition:background .15s;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{background:var(--red-dark)}
+.btn-primary[disabled]{opacity:.6;cursor:wait}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-outline{background:#fff;color:var(--ink);border:1px solid #CDD1D6}
+.btn-outline:hover{border-color:var(--ink)}
+.btn-ghost{background:transparent;color:var(--ink);padding-left:0}
+.btn-ghost:hover{color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;padding:7px 12px;border:1px solid #CDD1D6;border-radius:999px;font-size:13.5px;cursor:pointer;user-select:none;background:#fff;transition:all .12s}
+.chip input:checked+span{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip input:focus-visible+span{box-shadow:0 0 0 3px rgba(243,39,53,.3)}
+.states{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
+.states .chip span{width:100%;text-align:center;padding:8px 0;border-radius:6px}
+.alert{display:none;margin-top:18px;padding:12px 14px;border-radius:8px;background:#FDECEE;color:var(--err);font-size:14px}
+.alert.show{display:block}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.s-Pending{background:#FEF3C7;color:var(--warn)} .s-Approved{background:#DCFCE7;color:var(--ok)}
+.s-NeedsFix{background:#FFEDD5;color:#C2410C} .s-Rejected{background:#FDECEE;color:var(--err)}
+footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px}
+</style>
+<style>
+  body{font-size:14px}
+  .top{background:#000;color:#fff;position:relative;overflow:hidden}
+  .top::after{content:"";position:absolute;right:-140px;top:-180px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(243,39,53,.5),rgba(243,39,53,0) 70%)}
+  .top-inner{max-width:1500px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:16px;position:relative;z-index:1}
+  .top .logo{height:32px}
+  .top h1{color:#fff;font-size:24px;padding-left:16px;border-left:1px solid #333}
+  .top .user{margin-left:auto;color:#CFD2D6;font-size:13px;display:flex;gap:12px;align-items:center}
+  .top .user button{background:transparent;border:1px solid #444;color:#fff;border-radius:6px;padding:5px 10px;font:inherit;cursor:pointer}
+  .page{max-width:1500px;margin:0 auto;padding:16px 20px 30px}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .tabs{display:flex;gap:4px;background:#fff;border:1px solid var(--line);padding:4px;border-radius:10px;flex-wrap:wrap}
+  .tabs button{border:0;background:transparent;padding:7px 14px;border-radius:7px;font:inherit;font-weight:500;cursor:pointer;color:var(--muted)}
+  .tabs button.on{background:var(--ink);color:#fff}
+  .tabs .c{font-size:11px;margin-left:6px;opacity:.8}
+  .toolbar select,.toolbar input{width:auto;padding:8px 10px;font-size:13.5px}
+  .toolbar .grow{flex:1;min-width:200px}
+  .toolbar .btn{padding:9px 16px;font-size:13.5px}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+  .layout.split{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}
+  .list{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:auto;max-height:calc(100vh - 150px)}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:11px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:1}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr.r{cursor:pointer} tr.r:hover{background:#FAFAFA} tr.r.sel{background:#FFF5F5;box-shadow:inset 3px 0 0 var(--red)}
+  .sub{color:var(--muted);font-size:12.5px}
+  .codes{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--ink)}
+  .split .hs{display:none}
+  .detail{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;max-height:calc(100vh - 150px);overflow:auto}
+  .d-head{display:flex;gap:12px;align-items:flex-start}
+  .d-head h2{font-size:28px}
+  .d-head .btn{margin-left:auto;padding:7px 14px}
+  dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:16px 0}
+  dt{color:var(--muted)} dd{margin:0;color:var(--ink);word-break:break-word}
+  h4{font-family:Rajdhani,sans-serif;font-size:18px;color:var(--ink);margin:20px 0 8px;display:flex;align-items:center;gap:10px}
+  h4 a{font-family:Poppins,sans-serif;font-size:12.5px;font-weight:500;margin-left:auto}
+  .wt{width:100%;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .wt th{position:static;background:var(--bg)} .wt td{padding:8px 12px}
+  .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+  .gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:zoom-in;background:var(--line);display:block}
+  .gal .ld{aspect-ratio:1;border-radius:8px;background:var(--line)}
+  .act{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+  .act textarea{min-height:64px;margin-bottom:10px}
+  .act .row{display:flex;gap:8px;flex-wrap:wrap}
+  .act .btn{padding:10px 18px}
+  .b-ok{background:var(--ok);color:#fff} .b-fix{background:#C2410C;color:#fff} .b-rej{background:#fff;color:var(--err);border:1px solid var(--err)}
+  .hist{margin-top:18px;font-size:12.5px;color:var(--muted)} .hist div{padding:6px 0;border-top:1px dashed var(--line)}
+  .empty{padding:50px 20px;text-align:center;color:var(--muted)}
+  .gate{max-width:440px;margin:80px auto;text-align:center}
+  .gate h2{font-size:30px;margin-bottom:8px}
+  .lb{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:50}
+  .lb.on{display:flex} .lb img{max-width:94vw;max-height:86vh}
+  .lb button{position:absolute;background:rgba(255,255,255,.12);color:#fff;border:0;font-size:28px;width:52px;height:52px;border-radius:50%;cursor:pointer}
+  .lb .p{left:16px} .lb .n{right:16px} .lb .x{top:16px;right:16px}
+  .lb .cap{position:absolute;bottom:16px;color:#ccc;font-size:13px} .lb .cap a{color:#fff}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:40;padding:16px}
+  .modal.on{display:flex}
+  .modal .panel{width:100%;max-width:480px}
+  .modal h3{font-size:24px}
+  .modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  .modal .full{grid-column:1/-1}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  @media (max-width:980px){.layout.split{grid-template-columns:1fr}.split .list{display:none}.hm{display:none}.top h1{font-size:20px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner">
+  <img class="logo" src="https://triage-partners.com/wp-content/uploads/2021/12/TriagePartners_Wht@4x-8.png" alt="Triage Partners">
+  <h1>MDU QC Review</h1>
+  <div class="user hidden" id="user"><span id="userName"></span><button id="signOut">Sign out</button></div>
+</div></header>
+
+<div class="gate hidden" id="gate">
+  <h2>Supervisor sign-in</h2>
+  <p class="sub">Use your Triage Microsoft account. You need access to the MDU QC SharePoint site.</p>
+  <button class="btn btn-primary" id="signIn" style="margin-top:14px">Sign in with Microsoft</button>
+  <div class="alert" id="gateErr"></div>
+</div>
+
+<div class="page hidden" id="app">
+  <div class="toolbar">
+    <div class="tabs" id="tabs"></div>
+    <select id="fState"><option value="">All states</option></select>
+    <select id="fCo"><option value="">All companies</option></select>
+    <input type="date" id="fFrom" title="Submitted from"><input type="date" id="fTo" title="Submitted to">
+    <input type="search" class="grow" id="fQ" placeholder="Search job #, project, address, tech, code">
+    <button class="btn btn-outline" id="refresh" title="Refresh">↻</button>
+    <button class="btn btn-dark" id="openInv">Invoice export</button>
+  </div>
+  <div class="layout" id="layout">
+    <div class="list" id="listWrap">
+      <table><thead><tr><th>Job</th><th>Submitted</th><th>Company / Tech</th><th>Project</th><th class="hs hm">Location</th><th>Work</th><th class="hs hm">Photos</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table>
+      <div class="empty hidden" id="empty">No jobs match these filters.</div>
+    </div>
+    <div class="detail hidden" id="detail"></div>
+  </div>
+</div>
+
+<div class="modal" id="inv"><div class="panel">
+  <h3>Invoice export</h3>
+  <p class="sub" style="margin:6px 0 0">One row per unit code, in the same column order as the vendor invoice sheet — paste next to an invoice to reconcile.</p>
+  <div class="grid">
+    <div class="full"><label class="f" for="iCo">Company</label><select id="iCo"></select></div>
+    <div><label class="f" for="iWeek">Week ending</label><input type="date" id="iWeek"></div>
+    <div><label class="f" for="iStat">Include</label><select id="iStat"><option value="Approved">Approved only</option><option value="">All statuses</option></select></div>
+  </div>
+  <div class="sub" id="iCount"></div>
+  <div class="row"><button class="btn btn-ghost" id="iCancel">Cancel</button><button class="btn btn-primary" id="iGo">Download CSV</button></div>
+</div></div>
+
+<div class="lb" id="lb"><img id="lbImg" alt=""><button class="p" id="lbP">‹</button><button class="n" id="lbN">›</button><button class="x" id="lbX">×</button><div class="cap" id="lbCap"></div></div>
+
+<script>
+// ===== SETTINGS — edit these, nothing else needs to change =====
+window.MDU_CONFIG = {
+  msal: { clientId: "00000000-0000-0000-0000-000000000000", tenantId: "00000000-0000-0000-0000-000000000000" }, // Entra app registration
+  sharepoint: { hostname: "triagepartners.sharepoint.com", sitePath: "/sites/MDUQC", listName: "MDU QC Jobs", photoRoot: "MDU QC Photos" },
+  weekEndingDay: 6,                // invoice export: 0 = Sunday … 6 = Saturday
+  devGraphBase: "",                // local testing only — leave blank
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js"></script>
+<script>
+const C = window.MDU_CONFIG, SP = C.sharepoint;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const GRAPH = C.devGraphBase || "https://graph.microsoft.com/v1.0";
+const SCOPES = ["Sites.ReadWrite.All"];
+const STATS = ["Pending", "Needs Fix", "Approved", "Rejected", ""];
+let msalApp, account, siteId, all = [], view = [], tab = "Pending", sel = null, gal = [], gi = 0;
+
+/* ---------- sign-in ---------- */
+async function boot() {
+  if (C.devGraphBase) { account = { name: "Dev Supervisor", username: "dev@triage-partners.com" }; return start(); }
+  if (!window.msal || /^0{8}-/.test(C.msal.clientId) || location.protocol === "file:") {
+    $("gate").classList.remove("hidden"); $("signIn").disabled = true;
+    $("gateErr").textContent = location.protocol === "file:" ? "Preview only — Microsoft sign-in works once this page is published on GitHub Pages."
+      : "Sign-in isn't set up yet — add the app registration IDs to the settings at the top of this page (README step 2 and 4).";
+    $("gateErr").classList.add("show"); return;
+  }
+  msalApp = new msal.PublicClientApplication({ auth: { clientId: C.msal.clientId, authority: "https://login.microsoftonline.com/" + C.msal.tenantId, redirectUri: location.origin + location.pathname },
+    cache: { cacheLocation: "localStorage" } });
+  await msalApp.initialize();
+  const r = await msalApp.handleRedirectPromise().catch(e => { $("gateErr").textContent = e.message; $("gateErr").classList.add("show"); });
+  account = (r && r.account) || msalApp.getAllAccounts()[0];
+  if (account) start(); else $("gate").classList.remove("hidden");
+}
+$("signIn").onclick = () => msalApp.loginRedirect({ scopes: SCOPES });
+$("signOut").onclick = () => msalApp ? msalApp.logoutRedirect({ account }) : location.reload();
+async function token() {
+  if (C.devGraphBase) return "dev";
+  try { return (await msalApp.acquireTokenSilent({ scopes: SCOPES, account })).accessToken; }
+  catch { await msalApp.acquireTokenRedirect({ scopes: SCOPES, account }); }
+}
+async function g(path, opts = {}) {
+  const url = path.startsWith("http") ? path : GRAPH + path;
+  const r = await fetch(url, { ...opts, headers: { authorization: "Bearer " + await token(), "content-type": "application/json", ...(opts.headers || {}) } });
+  if (r.status === 204) return {};
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error((d.error && d.error.message) || "SharePoint error " + r.status);
+  return d;
+}
+
+/* ---------- data ---------- */
+const listPath = () => `/sites/${siteId}/lists/${encodeURIComponent(SP.listName)}`;
+async function start() {
+  $("gate").classList.add("hidden"); $("app").classList.remove("hidden"); $("user").classList.remove("hidden");
+  $("userName").textContent = account.name || account.username;
+  try { siteId = (await g(`/sites/${SP.hostname}:${SP.sitePath}`)).id; await load(); if (location.hash.length > 1) open(location.hash.slice(1)); }
+  catch (e) { $("rows").innerHTML = ""; $("empty").textContent = "Couldn't load jobs: " + e.message; $("empty").classList.remove("hidden"); }
+}
+async function load() {
+  let url = `${listPath()}/items?expand=fields&$top=500`, items = [];
+  while (url) { const d = await g(url); items = items.concat(d.value); url = d["@odata.nextLink"]; if (items.length > 5000) break; }
+  all = items.map(i => { const f = i.fields; let lines = []; try { lines = JSON.parse(f.LinesJson || "[]"); } catch {}
+    return { id: i.id, created: f.Created || i.createdDateTime, project: f.Title, state: f.State, tech: f.Tech, company: f.Company, email: f.TechEmail,
+      address: f.Address, apt: f.Apartment, lines, linesText: f.Lines, comments: f.Comments, folder: f.PhotoFolder, folderUrl: f.PhotoFolderUrl,
+      photos: f.PhotoCount, status: f.Status || "Pending", reviewer: f.Reviewer, reviewedAt: f.ReviewedAt, note: f.ReviewNote, history: f.History || "" }; })
+    .sort((a, b) => b.id - a.id);
+  const opts = (key) => [...new Set(all.map(j => j[key]).filter(Boolean))].sort();
+  fillSel($("fState"), "All states", opts("state")); fillSel($("fCo"), "All companies", opts("company"));
+  render();
+}
+function fillSel(s, first, vals) { const cur = s.value; s.innerHTML = `<option value="">${first}</option>` + vals.map(v => `<option>${esc(v)}</option>`).join(""); s.value = vals.includes(cur) ? cur : ""; }
+
+/* ---------- list ---------- */
+const fmt = (iso, withTime = true) => iso ? new Date(iso).toLocaleString([], withTime ? { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" } : { month: "short", day: "numeric", year: "numeric" }) : "";
+const pill = (s) => `<span class="pill s-${String(s).replace(/\s/g, "")}">${esc(s)}</span>`;
+const dayStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function filtered(ignoreTab) {
+  const q = $("fQ").value.trim().toLowerCase(), st = $("fState").value, co = $("fCo").value, from = $("fFrom").value, to = $("fTo").value;
+  return all.filter(j => (ignoreTab || !tab || j.status === tab) && (!st || j.state === st) && (!co || j.company === co)
+    && (!from || dayStr(new Date(j.created)) >= from) && (!to || dayStr(new Date(j.created)) <= to)
+    && (!q || [j.id, j.project, j.address, j.apt, j.tech, j.company, j.linesText].join(" ").toLowerCase().includes(q)));
+}
+function render() {
+  const base = filtered(true); view = filtered(false);
+  $("tabs").innerHTML = STATS.map(s => `<button data-s="${s}" class="${s === tab ? "on" : ""}">${s || "All"}<span class="c">${s ? base.filter(j => j.status === s).length : base.length}</span></button>`).join("");
+  $("tabs").querySelectorAll("button").forEach(b => b.onclick = () => { tab = b.dataset.s; render(); });
+  $("rows").innerHTML = view.map(j => `<tr class="r ${sel === j.id ? "sel" : ""}" data-id="${j.id}">
+    <td><b>#${j.id}</b></td><td>${fmt(j.created)}</td>
+    <td>${esc(j.company)}<div class="sub">${esc(j.tech)}</div></td>
+    <td>${esc(j.project)}<div class="sub">${esc(j.state)}</div></td>
+    <td class="hs hm">${esc(j.address)}<div class="sub">${esc(j.apt)}</div></td>
+    <td class="codes">${j.lines.map(l => `${esc(l.code)} <span class="sub">${l.qty} ${esc(l.um)}</span>`).join("<br>") || esc(j.linesText)}</td>
+    <td class="hs hm">${j.photos || 0}</td><td>${pill(j.status)}</td></tr>`).join("");
+  $("empty").classList.toggle("hidden", view.length > 0); if (!view.length) $("empty").textContent = "No jobs match these filters.";
+  $("rows").querySelectorAll("tr").forEach(tr => tr.onclick = () => open(tr.dataset.id));
+}
+["fState", "fCo", "fFrom", "fTo"].forEach(id => $(id).onchange = render);
+let qt; $("fQ").oninput = () => { clearTimeout(qt); qt = setTimeout(render, 200); };
+$("refresh").onclick = () => load().then(() => sel && open(sel));
+
+/* ---------- detail ---------- */
+const parseHist = (h) => h.split("\n").filter(Boolean).map(l => { const [at, who, act, ...note] = l.split("|"); return { at, who, act, note: note.join("|") }; });
+async function open(id) {
+  const j = all.find(x => x.id === id); if (!j) return;
+  sel = id; history.replaceState(null, "", "#" + id);
+  document.querySelectorAll("tr.r").forEach(tr => tr.classList.toggle("sel", tr.dataset.id === id));
+  $("layout").classList.add("split");
+  const d = $("detail"); d.classList.remove("hidden");
+  d.innerHTML = `<div class="d-head"><div><h2>Job #${j.id} · ${esc(j.project)}</h2>
+      <div class="sub" style="margin-top:6px">${esc(j.company)} · ${esc(j.tech)} · ${fmt(j.created)} &nbsp;${pill(j.status)}</div></div>
+      <button class="btn btn-outline" id="close">Close</button></div>
+    <dl><dt>State</dt><dd>${esc(j.state)}</dd><dt>Work location</dt><dd>${esc(j.address)}${j.apt ? " · " + esc(j.apt) : ""}</dd>
+      ${j.email ? `<dt>Tech email</dt><dd><a href="mailto:${esc(j.email)}">${esc(j.email)}</a></dd>` : ""}
+      <dt>Comments</dt><dd>${esc(j.comments) || "—"}</dd>
+      ${j.note ? `<dt>Review note</dt><dd>${esc(j.note)} <span class="sub">— ${esc(j.reviewer)}</span></dd>` : ""}</dl>
+    <h4>Work completed</h4>
+    <table class="wt"><thead><tr><th>Unit</th><th>Description</th><th>Qty</th><th>UM</th></tr></thead>
+      <tbody>${j.lines.map(l => `<tr><td class="codes">${esc(l.code)}</td><td>${esc(l.desc)}</td><td><b>${l.qty}</b></td><td>${esc(l.um)}</td></tr>`).join("")}</tbody></table>
+    <h4>QC photos <span class="sub" id="pc">${j.photos || 0}</span>${j.folderUrl ? `<a href="${esc(j.folderUrl)}" target="_blank" rel="noopener">Open folder in SharePoint ↗</a>` : ""}</h4>
+    <div class="gal" id="gal">${Array.from({ length: Math.min(j.photos || 0, 12) }, () => '<div class="ld"></div>').join("")}</div>
+    <div class="act">
+      <textarea id="note" placeholder="Note to the tech — required for Needs fix / Reject"></textarea>
+      <div class="row"><button class="btn b-ok" data-s="Approved">✓ Approve</button><button class="btn b-fix" data-s="Needs Fix">Needs fix</button>
+        <button class="btn b-rej" data-s="Rejected">Reject</button>${j.status !== "Pending" ? '<button class="btn btn-outline" data-s="Pending">Back to pending</button>' : ""}</div>
+      <div class="alert" id="actErr"></div>
+    </div>
+    <div class="hist"><b style="color:var(--ink)">History</b>${parseHist(j.history).map(h => `<div>${fmt(h.at)} · <b>${esc(h.act)}</b> by ${esc(h.who)}${h.note ? " — " + esc(h.note) : ""}</div>`).join("")}</div>`;
+  $("close").onclick = closeDetail;
+  d.querySelectorAll(".act .btn").forEach(b => b.onclick = () => setStatus(j, b.dataset.s));
+  d.scrollTop = 0;
+  try {
+    const kids = await g(`/sites/${siteId}/drive/root:/${j.folder.split("/").map(encodeURIComponent).join("/")}:/children?$expand=thumbnails&$top=200`);
+    if (sel !== id) return;
+    gal = kids.value.filter(k => k.file).sort((a, b) => a.name.localeCompare(b.name)).map(k => {
+      const t = (k.thumbnails && k.thumbnails[0]) || {};
+      return { thumb: (t.medium || t.large || {}).url || k["@microsoft.graph.downloadUrl"], full: k["@microsoft.graph.downloadUrl"] || (t.large || {}).url, web: k.webUrl, name: k.name };
+    });
+    $("gal").innerHTML = gal.map((p, i) => `<img loading="lazy" src="${esc(p.thumb)}" data-i="${i}" alt="${esc(p.name)}">`).join("") || '<span class="sub">No photos found in the folder.</span>';
+    $("gal").querySelectorAll("img").forEach(im => im.onclick = () => lb(+im.dataset.i));
+  } catch (e) { if (sel === id) $("gal").innerHTML = `<span class="sub">Couldn't load photos: ${esc(e.message)}</span>`; }
+}
+function closeDetail() { sel = null; history.replaceState(null, "", location.pathname); $("detail").classList.add("hidden"); $("layout").classList.remove("split"); render(); }
+async function setStatus(j, status) {
+  const note = $("note").value.trim();
+  if ((status === "Needs Fix" || status === "Rejected") && !note) { $("actErr").textContent = "Add a note so the tech knows what to fix."; $("actErr").classList.add("show"); $("note").focus(); return; }
+  const now = new Date().toISOString(), who = account.name || account.username;
+  const hist = (j.history ? j.history + "\n" : "") + [now, who, status, note.replace(/\n/g, " ")].join("|");
+  document.querySelectorAll(".act .btn").forEach(b => b.disabled = true);
+  try {
+    await g(`${listPath()}/items/${j.id}/fields`, { method: "PATCH", body: JSON.stringify({ Status: status, Reviewer: who, ReviewedAt: now, ReviewNote: note, History: hist }) });
+    Object.assign(j, { status, reviewer: who, reviewedAt: now, note, history: hist });
+    const idx = view.findIndex(x => x.id === j.id); render();
+    const next = tab ? (view[idx] || view[idx - 1]) : j;            // next job in the queue
+    if (next) open(next.id); else closeDetail();
+  } catch (e) { $("actErr").textContent = e.message; $("actErr").classList.add("show"); document.querySelectorAll(".act .btn").forEach(b => b.disabled = false); }
+}
+
+/* ---------- lightbox ---------- */
+function lb(i) { gi = (i + gal.length) % gal.length; const p = gal[gi]; $("lbImg").src = p.full; $("lb").classList.add("on");
+  $("lbCap").innerHTML = `${gi + 1} / ${gal.length} · <a href="${esc(p.web || p.full)}" target="_blank" rel="noopener">Open original</a>`; }
+$("lbP").onclick = () => lb(gi - 1); $("lbN").onclick = () => lb(gi + 1); $("lbX").onclick = () => $("lb").classList.remove("on");
+$("lb").onclick = (e) => { if (e.target === $("lb")) $("lb").classList.remove("on"); };
+document.addEventListener("keydown", (e) => { if (!$("lb").classList.contains("on")) return;
+  if (e.key === "ArrowLeft") lb(gi - 1); if (e.key === "ArrowRight") lb(gi + 1); if (e.key === "Escape") $("lb").classList.remove("on"); });
+
+/* ---------- invoice export ---------- */
+function weekEnding(iso) { const d = new Date(iso); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + ((C.weekEndingDay - d.getDay() + 7) % 7)); return dayStr(d); }
+function invRows() {
+  const co = $("iCo").value, wk = $("iWeek").value, st = $("iStat").value;
+  return all.filter(j => (!co || j.company === co) && weekEnding(j.created) === wk && (!st || j.status === st)).sort((a, b) => a.id - b.id);
+}
+function invCount() { const r = invRows(); $("iCount").textContent = `${r.length} job${r.length === 1 ? "" : "s"}, ${r.reduce((n, j) => n + j.lines.length, 0)} invoice lines`; }
+$("openInv").onclick = () => {
+  fillSel($("iCo"), "All companies", [...new Set(all.map(j => j.company).filter(Boolean))].sort());
+  $("iCo").value = $("fCo").value;
+  const last = new Date(); last.setDate(last.getDate() - 7); $("iWeek").value = weekEnding(last.toISOString());
+  invCount(); $("inv").classList.add("on");
+};
+["iCo", "iWeek", "iStat"].forEach(id => $(id).onchange = invCount);
+$("iCancel").onclick = () => $("inv").classList.remove("on");
+$("iGo").onclick = () => {
+  const cols = ["Week Ending", "State", "Work Location", "Project #", "Unit", "Description", "Qty", "UM", "Comments", "Company", "QC Job #", "QC Status", "Photos"];
+  const q = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const out = [cols.join(",")];
+  invRows().forEach(j => j.lines.forEach(l => out.push([weekEnding(j.created), j.state, [j.address, j.apt].filter(Boolean).join(" · "), j.project,
+    l.code, l.desc, l.qty, l.um, j.comments, j.company, j.id, j.status, j.photos].map(q).join(","))));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([out.join("\r\n")], { type: "text/csv" }));
+  a.download = `MDU-QC_${($("iCo").value || "all").replace(/\W+/g, "-")}_WE-${$("iWeek").value}.csv`; a.click();
+  $("inv").classList.remove("on");
+};
+
+boot();
+</script>
+</body>
+</html>
