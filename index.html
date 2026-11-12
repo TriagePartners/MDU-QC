@@ -108,6 +108,12 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px
   .bar div{height:100%;width:0;background:var(--red);transition:width .2s}
   .status{font-size:14px;color:var(--muted)}
   .info ol{margin:0;padding-left:18px;font-size:14px} .info li{margin-bottom:6px}
+  .fix-card{border-left:4px solid var(--red)}
+  .fix-card h2{font-size:24px;margin-bottom:6px}
+  .fix-note{margin:12px 0 0;padding:12px 14px;background:var(--bg);border-radius:8px;color:var(--ink);white-space:pre-wrap}
+  .fix-note b{display:block;font-size:12.5px;color:var(--muted);font-weight:500;margin-bottom:2px}
+  .chip input:disabled+span{opacity:.45;cursor:not-allowed}
+  input:disabled{background:var(--bg);color:var(--muted)}
   .done-card{text-align:center;padding:44px 22px}
   .done-icon{width:64px;height:64px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;margin:0 auto 18px;font-size:30px}
   .done-card h2{font-size:30px}
@@ -125,6 +131,13 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px
 
 <div class="wrap" id="formWrap">
   <div class="main">
+    <section class="panel sec fix-card hidden" id="fixCard">
+      <div class="eyebrow" style="margin:0 0 6px" id="fixEyebrow">Sent back for a fix</div>
+      <h2 id="fixTitle"></h2>
+      <div class="hint" id="fixSub" style="margin:0"></div>
+      <div class="fix-note" id="fixNote"></div>
+      <p class="hint" style="margin-top:12px" id="fixHow">Make your corrections below, add any missing photos, then tap <b>Resubmit job</b>. Your earlier photos are already saved — only add new ones.</p>
+    </section>
     <!-- 1. You -->
     <section class="panel sec">
       <div class="sec-h"><span class="n">1</span><h2>Your info</h2></div>
@@ -196,7 +209,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px
 <div class="wrap hidden" id="doneWrap" style="grid-template-columns:1fr">
   <section class="panel done-card">
     <div class="done-icon">✓</div>
-    <h2>Job submitted</h2>
+    <h2 id="doneTitle">Job submitted</h2>
     <div class="ref" id="doneRef"></div>
     <p id="doneText"></p>
     <button type="button" class="btn btn-primary" id="another">Enter another job</button>
@@ -681,7 +694,9 @@ const C = window.MDU_CONFIG, U = window.MDU_UNITS;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 const store = { get(k){ try { return localStorage.getItem("mduqc_" + k) || ""; } catch { return ""; } }, set(k, v){ try { localStorage.setItem("mduqc_" + k, v); } catch {} } };
-let photos = [], nextN = 0, session = null, busy = false, tsWidget = null;
+let photos = [], nextN = 0, session = null, busy = false, tsWidget = null, fix = null;
+const fixId = new URLSearchParams(location.search).get("fix");
+const minPhotos = () => fix ? 0 : C.minPhotos;
 $("yr").textContent = new Date().getFullYear();
 if (/YOUR-SUBDOMAIN/.test(C.apiBase) || location.protocol === "file:") {
   const b = document.createElement("div"); b.className = "alert show"; b.style.margin = "0 0 4px";
@@ -760,7 +775,7 @@ function renderPhotos() {
     d.querySelector(".rm").onclick = () => { if (busy) return; URL.revokeObjectURL(p.url); photos = photos.filter(x => x !== p); renderPhotos(); };
     $("thumbs").appendChild(d);
   });
-  $("pcount").textContent = photos.length; $("pcount").classList.toggle("low", photos.length < C.minPhotos);
+  $("pcount").textContent = photos.length; $("pcount").classList.toggle("low", photos.length < minPhotos());
 }
 
 /* ---- bot check ---- */
@@ -775,7 +790,7 @@ const v = (id) => $(id).value.trim();
 $("formWrap").addEventListener("input", (e) => { const inv = e.target.closest(".invalid"); if (inv) inv.classList.remove("invalid"); });
 $("formWrap").addEventListener("change", (e) => { const inv = e.target.closest(".invalid"); if (inv) inv.classList.remove("invalid"); });
 async function post(path, body, isJson = true) {
-  const r = await fetch(C.apiBase + path, { method: "POST", headers: { "content-type": isJson ? "application/json" : "image/jpeg" }, body: isJson ? JSON.stringify(body) : body });
+  const r = await fetch(C.apiBase.replace(/\/+$/, "") + path, { method: "POST", headers: { "content-type": isJson ? "application/json" : "image/jpeg" }, body: isJson ? JSON.stringify(body) : body });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(d.error || `Upload failed (${r.status}). Check your signal and try again.`), { status: r.status });
   return d;
@@ -795,17 +810,17 @@ $("submitBtn").onclick = async () => {
   const badLines = lines.filter(l => !l.code || !(l.qty > 0));
   badLines.forEach(l => l.row.classList.add("invalid"));
   if (!lines.length) miss.push("at least one unit code"); else if (badLines.length) miss.push("a unit code and quantity on every line");
-  if (photos.length < C.minPhotos) miss.push(`at least ${C.minPhotos} photos`);
+  if (photos.length < minPhotos()) miss.push(`at least ${minPhotos()} photos`);
   if (miss.length) { alertMsg("Still needed: " + miss.join(", ") + "."); return; }
 
   ["techName", "company", "email"].forEach(k => store.set(k, v(k))); store.set("state", state);
   busy = true; $("submitBtn").disabled = true; $("bar").style.display = "block";
   const setBar = (f) => $("bar").firstElementChild.style.width = (f * 100) + "%";
   try {
-    const key = state + "|" + v("projectNumber");
+    const key = fix ? "fix" : state + "|" + v("projectNumber");
     if (!session || session.key !== key) {          // new job folder (first try, or project/state changed)
       $("status").textContent = "Starting…";
-      const s = await post("/start", { turnstileToken: tsToken(), projectNumber: v("projectNumber"), state });
+      const s = await post("/start", fix ? { turnstileToken: tsToken(), fixJobId: fixId } : { turnstileToken: tsToken(), projectNumber: v("projectNumber"), state });
       session = { ...s, key }; photos.forEach(p => p.up = false); renderPhotos();
       if (window.turnstile && tsWidget != null) turnstile.reset(tsWidget);
     }
@@ -823,7 +838,9 @@ $("submitBtn").onclick = async () => {
     const res = await retry(() => post("/submit", body));
     setBar(1);
     $("doneRef").textContent = "QC Job #" + res.num;
-    $("doneText").textContent = `Project ${body.projectNumber} · ${lines.map(l => `${l.code} × ${l.qty} ${l.um}`).join(", ")} · ${photos.length} photos. A supervisor will review it${body.email ? " and email you if anything needs fixing" : ""}.`;
+    if (fix) { $("doneTitle").textContent = "Job resubmitted"; $("another").textContent = "Enter a new job"; }
+    $("doneText").textContent = fix ? `Thanks — your fix for project ${body.projectNumber} is back with a supervisor${photos.length ? ` with ${photos.length} new photo${photos.length === 1 ? "" : "s"}` : ""}.`
+      : `Project ${body.projectNumber} · ${lines.map(l => `${l.code} × ${l.qty} ${l.um}`).join(", ")} · ${photos.length} photos. A supervisor will review it${body.email ? " and email you if anything needs fixing" : ""}.`;
     $("formWrap").classList.add("hidden"); $("doneWrap").classList.remove("hidden"); window.scrollTo(0, 0);
   } catch (e) {
     if (e.status === 401) session = null;
@@ -832,11 +849,45 @@ $("submitBtn").onclick = async () => {
 };
 
 $("another").onclick = () => {
+  if (fix) { location.href = location.pathname; return; }
   photos.forEach(p => URL.revokeObjectURL(p.url)); photos = []; nextN = 0; session = null;
   ["projectNumber", "apartment", "address", "comments"].forEach(k => $(k).value = "");
   $("lines").innerHTML = ""; addLine(); renderPhotos(); alertMsg(""); showMe(true);
   $("doneWrap").classList.add("hidden"); $("formWrap").classList.remove("hidden"); window.scrollTo(0, 0);
 };
+/* ---- fix mode: ?fix=<JobId> from the "needs fix" email ---- */
+async function loadFix() {
+  $("submitBtn").disabled = true; $("status").textContent = "Loading your job…";
+  try {
+    const j = await post("/fix-info", { jobId: fixId });
+    if (j.status !== "Needs Fix") {
+      $("fixCard").classList.remove("hidden"); $("fixTitle").textContent = `QC Job #${j.num} is ${j.status}`;
+      $("fixEyebrow").textContent = "Nothing to fix"; $("fixHow").classList.add("hidden");
+      $("fixSub").textContent = `Project ${j.project} · ${j.address}`;
+      $("fixNote").innerHTML = j.status === "Pending" ? "This job is already back with a supervisor — nothing else to do." : "This job doesn't need a fix.";
+      document.querySelectorAll(".main > section:not(#fixCard)").forEach(sec => sec.classList.add("hidden"));
+      const a = document.createElement("a"); a.href = location.pathname; a.className = "btn btn-primary"; a.style.marginTop = "14px"; a.textContent = "Enter a new job";
+      $("fixCard").appendChild(a); $("status").textContent = ""; return;
+    }
+    fix = j;
+    document.querySelector(".hero h1").textContent = "Fix MDU Job #" + j.num;
+    document.querySelector(".hero p").textContent = "A supervisor sent this job back. Read the note below, fix what's needed, and resubmit — it keeps the same job number.";
+    $("fixCard").classList.remove("hidden"); $("fixTitle").textContent = `QC Job #${j.num} · Project ${j.project}`;
+    $("fixSub").textContent = `${j.company} · ${j.address}${j.apartment ? " · " + j.apartment : ""} · ${j.photoCount} photos already on file`;
+    $("fixNote").innerHTML = `<b>Supervisor's note${j.reviewer ? " (" + esc(j.reviewer) + ")" : ""}</b>${esc(j.reviewNote) || "—"}`;
+    if (!v("techName")) $("techName").value = j.tech || ""; if (!v("company")) $("company").value = j.company || ""; if (!v("email")) $("email").value = j.email || "";
+    showMe(true);
+    document.querySelectorAll("input[name=state]").forEach(r => { r.checked = r.value === j.state; r.disabled = true; });
+    $("projectNumber").value = j.project || ""; $("projectNumber").disabled = true;
+    $("address").value = j.address || ""; $("apartment").value = j.apartment || ""; $("comments").value = j.comments || "";
+    $("lines").innerHTML = "";
+    (j.lines.length ? j.lines : [{}]).forEach(l => { addLine(); const row = $("lines").lastElementChild;
+      if (l.code) { row.querySelector("select").value = l.code; row.querySelector("select").onchange(); row.querySelector("input").value = l.qty; } });
+    $("minP").textContent = "0 (add any missing)"; $("submitBtn").textContent = "Resubmit job"; renderPhotos();
+  } catch (e) { alertMsg(e.message); }
+  finally { $("submitBtn").disabled = false; if (!fix) $("submitBtn").disabled = !!document.querySelector("#fixCard:not(.hidden)"); $("status").textContent = ""; }
+}
+if (fixId) loadFix();
 window.addEventListener("beforeunload", (e) => { if (photos.length && $("doneWrap").classList.contains("hidden")) { e.preventDefault(); e.returnValue = ""; } });
 renderPhotos();
 </script>
