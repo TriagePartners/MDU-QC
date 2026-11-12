@@ -124,6 +124,13 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px
   .modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
   .modal .full{grid-column:1/-1}
   .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  h4 .pdfb{font-family:Poppins,sans-serif;font-size:12.5px;padding:6px 12px;margin-left:10px}
+  .lay{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0 6px}
+  .lay label{border:1px solid #CDD1D6;border-radius:8px;padding:10px 8px;text-align:center;cursor:pointer;font-size:13px}
+  .lay input{display:none}
+  .lay label:has(input:checked){border-color:var(--ink);background:var(--ink);color:#fff}
+  .lay b{display:block;font-family:Rajdhani,sans-serif;font-size:18px}
+  #pdfProg{min-height:20px;margin-top:10px}
   @media (max-width:980px){.layout.split{grid-template-columns:1fr}.split .list{display:none}.hm{display:none}.top h1{font-size:20px}}
 </style>
 </head>
@@ -172,6 +179,19 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px
   <div class="row"><button class="btn btn-ghost" id="iCancel">Cancel</button><button class="btn btn-primary" id="iGo">Download CSV</button></div>
 </div></div>
 
+<div class="modal" id="pdfM"><div class="panel">
+  <h3>Download photos as PDF</h3>
+  <p class="sub" style="margin:6px 0 0" id="pdfInfo"></p>
+  <div class="lay">
+    <label><input type="radio" name="lay" value="1"><b>1</b>photo per page</label>
+    <label><input type="radio" name="lay" value="2" checked><b>2</b>photos per page</label>
+    <label><input type="radio" name="lay" value="4"><b>4</b>photos per page</label>
+  </div>
+  <div class="sub">Page 1 has the job details (project, address, unit codes, approval). Photos follow in order.</div>
+  <div class="sub" id="pdfProg"></div>
+  <div class="row"><button class="btn btn-ghost" id="pdfCancel">Cancel</button><button class="btn btn-primary" id="pdfGo">Create PDF</button></div>
+</div></div>
+
 <div class="lb" id="lb"><img id="lbImg" alt=""><button class="p" id="lbP">‹</button><button class="n" id="lbN">›</button><button class="x" id="lbX">×</button><div class="cap" id="lbCap"></div></div>
 
 <script>
@@ -191,6 +211,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&
 const GRAPH = C.devGraphBase || "https://graph.microsoft.com/v1.0";
 const SCOPES = ["Sites.ReadWrite.All"];
 const STATS = ["Pending", "Needs Fix", "Approved", "Rejected", ""];
+let cur = null, pdfBusy = false;
 let msalApp, account, siteId, all = [], view = [], tab = "Pending", sel = null, gal = [], gi = 0;
 
 /* ---------- sign-in ---------- */
@@ -293,7 +314,7 @@ async function open(id) {
     <h4>Work completed</h4>
     <table class="wt"><thead><tr><th>Unit</th><th>Description</th><th>Qty</th><th>UM</th></tr></thead>
       <tbody>${j.lines.map(l => `<tr><td class="codes">${esc(l.code)}</td><td>${esc(l.desc)}</td><td><b>${l.qty}</b></td><td>${esc(l.um)}</td></tr>`).join("")}</tbody></table>
-    <h4>QC photos <span class="sub" id="pc">${j.photos || 0}</span>${j.folderUrl ? `<a href="${esc(j.folderUrl)}" target="_blank" rel="noopener">Open folder in SharePoint ↗</a>` : ""}</h4>
+    <h4>QC photos <span class="sub" id="pc">${j.photos || 0}</span>${j.folderUrl ? `<a href="${esc(j.folderUrl)}" target="_blank" rel="noopener">Open folder in SharePoint ↗</a>` : ""}<button class="btn btn-outline pdfb" id="pdfBtn" disabled>⬇ Download PDF</button></h4>
     <div class="gal" id="gal">${Array.from({ length: Math.min(j.photos || 0, 12) }, () => '<div class="ld"></div>').join("")}</div>
     <div class="act">
       <textarea id="note" placeholder="Note to the tech — required for Needs fix / Reject"></textarea>
@@ -303,6 +324,7 @@ async function open(id) {
     </div>
     <div class="hist"><b style="color:var(--ink)">History</b>${parseHist(j.history).map(h => `<div>${fmt(h.at)} · <b>${esc(h.act)}</b> by ${esc(h.who)}${h.note ? " — " + esc(h.note) : ""}</div>`).join("")}</div>`;
   $("close").onclick = closeDetail;
+  cur = j; gal = []; $("pdfBtn").onclick = openPdf;
   d.querySelectorAll(".act .btn").forEach(b => b.onclick = () => setStatus(j, b.dataset.s));
   d.scrollTop = 0;
   try {
@@ -310,10 +332,11 @@ async function open(id) {
     if (sel !== id) return;
     gal = kids.value.filter(k => k.file).sort((a, b) => a.name.localeCompare(b.name)).map(k => {
       const t = (k.thumbnails && k.thumbnails[0]) || {};
-      return { thumb: (t.medium || t.large || {}).url || k["@microsoft.graph.downloadUrl"], full: k["@microsoft.graph.downloadUrl"] || (t.large || {}).url, web: k.webUrl, name: k.name };
+      return { id: k.id, thumb: (t.medium || t.large || {}).url || k["@microsoft.graph.downloadUrl"], full: k["@microsoft.graph.downloadUrl"] || (t.large || {}).url, web: k.webUrl, name: k.name };
     });
     $("gal").innerHTML = gal.map((p, i) => `<img loading="lazy" src="${esc(p.thumb)}" data-i="${i}" alt="${esc(p.name)}">`).join("") || '<span class="sub">No photos found in the folder.</span>';
     $("gal").querySelectorAll("img").forEach(im => im.onclick = () => lb(+im.dataset.i));
+    $("pdfBtn").disabled = !gal.length;
   } catch (e) { if (sel === id) $("gal").innerHTML = `<span class="sub">Couldn't load photos: ${esc(e.message)}</span>`; }
 }
 function closeDetail() { sel = null; history.replaceState(null, "", location.pathname); $("detail").classList.add("hidden"); $("layout").classList.remove("split"); render(); }
@@ -339,6 +362,94 @@ $("lbP").onclick = () => lb(gi - 1); $("lbN").onclick = () => lb(gi + 1); $("lbX
 $("lb").onclick = (e) => { if (e.target === $("lb")) $("lb").classList.remove("on"); };
 document.addEventListener("keydown", (e) => { if (!$("lb").classList.contains("on")) return;
   if (e.key === "ArrowLeft") lb(gi - 1); if (e.key === "ArrowRight") lb(gi + 1); if (e.key === "Escape") $("lb").classList.remove("on"); });
+
+/* ---------- photos → PDF (built in the browser, nothing is uploaded anywhere) ---------- */
+function openPdf() {
+  if (!cur || !gal.length) return;
+  $("pdfInfo").textContent = `Job #${cur.id} · Project ${cur.project} · ${gal.length} photo${gal.length === 1 ? "" : "s"}`;
+  $("pdfProg").textContent = ""; $("pdfGo").disabled = false; $("pdfM").classList.add("on");
+}
+$("pdfCancel").onclick = () => { if (!pdfBusy) $("pdfM").classList.remove("on"); };
+function loadJsPDF() {
+  if (window.jspdf) return Promise.resolve();
+  return new Promise((res, rej) => { const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"; s.onload = res; s.onerror = () => rej(new Error("Couldn't load the PDF tool — check your connection.")); document.head.appendChild(s); });
+}
+async function photoData(p, maxSide) {
+  let blob;
+  try { const r = await fetch(p.full); if (!r.ok) throw 0; blob = await r.blob(); }
+  catch { const r = await fetch(`${GRAPH}/sites/${siteId}/drive/items/${p.id}/content`, { headers: { authorization: "Bearer " + await token() } });
+    if (!r.ok) throw new Error("Couldn't download " + p.name); blob = await r.blob(); }
+  const bmp = await createImageBitmap(blob, { imageOrientation: "from-image" });
+  const s = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  return { data: c.toDataURL("image/jpeg", 0.8), w: c.width, h: c.height };
+}
+$("pdfGo").onclick = async () => {
+  if (pdfBusy) return;
+  const j = cur, photos = gal.slice(), per = +document.querySelector("input[name=lay]:checked").value;
+  pdfBusy = true; $("pdfGo").disabled = true;
+  try {
+    $("pdfProg").textContent = "Loading…"; await loadJsPDF();
+    const imgs = new Array(photos.length); let done = 0, next = 0;
+    const maxSide = per === 1 ? 1600 : per === 2 ? 1300 : 1000;
+    const worker = async () => { while (next < photos.length) { const i = next++;
+      imgs[i] = await photoData(photos[i], maxSide); done++; $("pdfProg").textContent = `Adding photo ${done} of ${photos.length}…`; } };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    $("pdfProg").textContent = "Building PDF…";
+
+    const { jsPDF } = window.jspdf, doc = new jsPDF({ unit: "pt", format: "letter" });
+    const W = 612, H = 792, M = 40, top = 74, bottom = H - 40;
+    const head = () => {
+      doc.setFillColor(0, 0, 0); doc.rect(0, 0, W, 48, "F"); doc.setFillColor(243, 39, 53); doc.rect(0, 48, W, 3, "F");
+      doc.setTextColor(255); doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text("TRIAGE PARTNERS", M, 30);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+      doc.text(`MDU QC · Job #${j.id} · Project ${j.project || ""}`, W - M, 30, { align: "right" }); doc.setTextColor(17);
+    };
+    // page 1: job details
+    head();
+    doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.text(`MDU QC Job #${j.id}`, M, top + 22);
+    let y = top + 50;
+    const sub = j.reviewer && j.status !== "Pending" ? `${j.status} by ${j.reviewer}${j.reviewedAt ? " on " + new Date(j.reviewedAt).toLocaleDateString() : ""}` : j.status;
+    const rows = [["Project #", j.project], ["State", j.state], ["Work location", [j.address, j.apt].filter(Boolean).join(" · ")],
+      ["Company", j.company], ["Technician", j.tech], ["Submitted", new Date(j.created).toLocaleString()], ["QC status", sub],
+      ["Comments", j.comments || "—"], ["Photos", String(photos.length)]];
+    doc.setFontSize(10.5);
+    rows.forEach(([k, v]) => { const lines = doc.splitTextToSize(String(v || "—"), W - M * 2 - 120);
+      doc.setFont("helvetica", "normal"); doc.setTextColor(105, 114, 125); doc.text(k, M, y);
+      doc.setTextColor(17); doc.text(lines, M + 120, y); y += 16 * lines.length + 4; });
+    y += 14; doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text("Work completed", M, y); y += 10;
+    const cols = [M, M + 70, W - M - 90, W - M - 40];
+    doc.setFillColor(246, 247, 248); doc.rect(M, y, W - M * 2, 20, "F"); doc.setFontSize(9); doc.setTextColor(105, 114, 125);
+    ["UNIT", "DESCRIPTION", "QTY", "UM"].forEach((h, i) => doc.text(h, cols[i] + 6, y + 13)); y += 20;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.setTextColor(17);
+    (j.lines.length ? j.lines : [{ code: j.linesText || "", desc: "", qty: "", um: "" }]).forEach(l => {
+      const d = doc.splitTextToSize(String(l.desc || ""), cols[2] - cols[1] - 12);
+      doc.text(String(l.code || ""), cols[0] + 6, y + 14); doc.text(d, cols[1] + 6, y + 14);
+      doc.text(String(l.qty ?? ""), cols[2] + 6, y + 14); doc.text(String(l.um || ""), cols[3] + 6, y + 14);
+      y += Math.max(20, 14 * d.length + 8); doc.setDrawColor(227, 229, 232); doc.line(M, y, W - M, y); });
+
+    // photo pages
+    const gridCols = per === 4 ? 2 : 1, gridRows = per === 1 ? 1 : 2, gap = 14, cap = 16;
+    const cw = (W - M * 2 - gap * (gridCols - 1)) / gridCols, ch = (bottom - top - gap * (gridRows - 1)) / gridRows;
+    imgs.forEach((im, i) => {
+      const slot = i % per; if (slot === 0) { doc.addPage(); head(); }
+      const cx = M + (slot % gridCols) * (cw + gap), cy = top + Math.floor(slot / gridCols) * (ch + gap);
+      const s = Math.min(cw / im.w, (ch - cap) / im.h), iw = im.w * s, ih = im.h * s;
+      doc.addImage(im.data, "JPEG", cx + (cw - iw) / 2, cy, iw, ih, undefined, "FAST");
+      doc.setFontSize(9); doc.setTextColor(105, 114, 125);
+      doc.text(`Photo ${i + 1} of ${imgs.length}`, cx + cw / 2, cy + ih + 12, { align: "center" }); doc.setTextColor(17);
+    });
+    const n = doc.getNumberOfPages();
+    for (let p = 1; p <= n; p++) { doc.setPage(p); doc.setFontSize(8.5); doc.setTextColor(105, 114, 125); doc.text(`Page ${p} of ${n}`, W - M, H - 18, { align: "right" }); }
+    const name = `MDU-QC_Job-${j.id}_Project-${String(j.project || "").replace(/[^\w-]+/g, "-")}.pdf`;
+    const blob = doc.output("blob"); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+    $("pdfProg").textContent = `Done — ${name} (${(blob.size / 1048576).toFixed(1)} MB, ${n} pages)`;
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  } catch (e) { $("pdfProg").textContent = "⚠ " + e.message; }
+  finally { pdfBusy = false; $("pdfGo").disabled = false; }
+};
 
 /* ---------- invoice export ---------- */
 function weekEnding(iso) { const d = new Date(iso); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + ((C.weekEndingDay - d.getDay() + 7) % 7)); return dayStr(d); }
