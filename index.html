@@ -113,6 +113,12 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px
   .fix-note{margin:12px 0 0;padding:12px 14px;background:var(--bg);border-radius:8px;color:var(--ink);white-space:pre-wrap}
   .fix-note b{display:block;font-size:12.5px;color:var(--muted);font-weight:500;margin-bottom:2px}
   .chip input:disabled+span{opacity:.45;cursor:not-allowed}
+  .old-h{font-weight:500;color:var(--ink);font-size:14px;margin:0 0 2px}
+  #oldWrap{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .ph .tog{position:absolute;left:4px;right:4px;bottom:4px;border:0;border-radius:6px;padding:2px 0;font:600 10.5px Poppins,sans-serif;cursor:pointer;background:rgba(0,0,0,.72);color:#fff}
+  .ph.removed img{opacity:.25;filter:grayscale(1)}
+  .ph.removed .tog{background:var(--red)}
+  .ph.removed::before{content:"Will be removed";position:absolute;top:36%;left:0;right:0;text-align:center;font-size:11px;font-weight:600;color:var(--err)}
   input:disabled{background:var(--bg);color:var(--muted)}
   .done-card{text-align:center;padding:44px 22px}
   .done-icon{width:64px;height:64px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;margin:0 auto 18px;font-size:30px}
@@ -136,7 +142,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px
       <h2 id="fixTitle"></h2>
       <div class="hint" id="fixSub" style="margin:0"></div>
       <div class="fix-note" id="fixNote"></div>
-      <p class="hint" style="margin-top:12px" id="fixHow">Make your corrections below, add any missing photos, then tap <b>Resubmit job</b>. Your earlier photos are already saved — only add new ones.</p>
+      <p class="hint" style="margin-top:12px" id="fixHow">Make your corrections below, add any missing photos, then tap <b>Resubmit job</b>. Your earlier photos are shown under QC photos — remove any wrong ones and add what's missing.</p>
     </section>
     <!-- 1. You -->
     <section class="panel sec">
@@ -172,6 +178,11 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px
     <!-- 4. Photos -->
     <section class="panel sec">
       <div class="sec-h"><span class="n">4</span><h2>QC photos</h2><span class="opt"><span class="pcount" id="pcount">0</span> added · min <span id="minP"></span></span></div>
+      <div id="oldWrap" class="hidden">
+        <div class="old-h">Already on file</div>
+        <div class="hint" style="margin-top:0">Tap <b>Remove</b> on any photo that's wrong. Supervisors can still see removed photos if needed.</div>
+        <div class="thumbs" id="oldThumbs"></div>
+      </div>
       <div class="drop" id="drop" role="button" tabindex="0"><div class="big">📷 Take or add photos</div><div class="hint">Select several at once. Photos are resized on your phone so they upload fast.</div></div>
       <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
       <div class="thumbs" id="thumbs"></div>
@@ -697,6 +708,18 @@ const store = { get(k){ try { return localStorage.getItem("mduqc_" + k) || ""; }
 let photos = [], nextN = 0, session = null, busy = false, tsWidget = null, fix = null;
 const fixId = new URLSearchParams(location.search).get("fix");
 const minPhotos = () => fix ? 0 : C.minPhotos;
+const keptOld = () => fix ? fix.photos.filter(p => !p.removed).length : 0;
+function renderOld() {
+  if (!fix) return;
+  $("oldWrap").classList.toggle("hidden", !fix.photos.length);
+  $("oldThumbs").innerHTML = "";
+  fix.photos.forEach(p => {
+    const d = document.createElement("div"); d.className = "ph" + (p.removed ? " removed" : "");
+    d.innerHTML = `<img src="${esc(p.thumb)}" alt="${esc(p.name)}" loading="lazy"><button type="button" class="tog">${p.removed ? "Undo" : "Remove"}</button>`;
+    d.querySelector(".tog").onclick = () => { if (busy) return; p.removed = !p.removed; renderOld(); renderPhotos(); };
+    $("oldThumbs").appendChild(d);
+  });
+}
 $("yr").textContent = new Date().getFullYear();
 if (/YOUR-SUBDOMAIN/.test(C.apiBase) || location.protocol === "file:") {
   const b = document.createElement("div"); b.className = "alert show"; b.style.margin = "0 0 4px";
@@ -775,7 +798,8 @@ function renderPhotos() {
     d.querySelector(".rm").onclick = () => { if (busy) return; URL.revokeObjectURL(p.url); photos = photos.filter(x => x !== p); renderPhotos(); };
     $("thumbs").appendChild(d);
   });
-  $("pcount").textContent = photos.length; $("pcount").classList.toggle("low", photos.length < minPhotos());
+  $("pcount").textContent = fix ? `${keptOld()} on file + ${photos.length} new` : photos.length;
+  $("pcount").classList.toggle("low", fix ? keptOld() + photos.length < 1 : photos.length < minPhotos());
 }
 
 /* ---- bot check ---- */
@@ -811,6 +835,7 @@ $("submitBtn").onclick = async () => {
   badLines.forEach(l => l.row.classList.add("invalid"));
   if (!lines.length) miss.push("at least one unit code"); else if (badLines.length) miss.push("a unit code and quantity on every line");
   if (photos.length < minPhotos()) miss.push(`at least ${minPhotos()} photos`);
+  if (fix && keptOld() + photos.length < 1) miss.push("at least one photo on the job");
   if (miss.length) { alertMsg("Still needed: " + miss.join(", ") + "."); return; }
 
   ["techName", "company", "email"].forEach(k => store.set(k, v(k))); store.set("state", state);
@@ -834,12 +859,14 @@ $("submitBtn").onclick = async () => {
     $("status").textContent = "Saving job…";
     const body = { ticket: session.ticket, techName: v("techName"), company: v("company"), email: v("email"), state,
       projectNumber: v("projectNumber"), apartment: v("apartment"), address: v("address"), comments: v("comments"),
-      lines: lines.map(({ code, desc, um, qty }) => ({ code, desc, um, qty })), photoCount: photos.length };
+      lines: lines.map(({ code, desc, um, qty }) => ({ code, desc, um, qty })), photoCount: photos.length,
+      removePhotos: fix ? fix.photos.filter(p => p.removed).map(p => p.name) : [] };
     const res = await retry(() => post("/submit", body));
     setBar(1);
     $("doneRef").textContent = "QC Job #" + res.num;
     if (fix) { $("doneTitle").textContent = "Job resubmitted"; $("another").textContent = "Enter a new job"; }
-    $("doneText").textContent = fix ? `Thanks — your fix for project ${body.projectNumber} is back with a supervisor${photos.length ? ` with ${photos.length} new photo${photos.length === 1 ? "" : "s"}` : ""}.`
+    const rm = body.removePhotos.length, chg = [photos.length ? `${photos.length} new photo${photos.length === 1 ? "" : "s"}` : "", rm ? `${rm} removed` : ""].filter(Boolean).join(", ");
+    $("doneText").textContent = fix ? `Thanks — your fix for project ${body.projectNumber} is back with a supervisor${chg ? " (" + chg + ")" : ""}.`
       : `Project ${body.projectNumber} · ${lines.map(l => `${l.code} × ${l.qty} ${l.um}`).join(", ")} · ${photos.length} photos. A supervisor will review it${body.email ? " and email you if anything needs fixing" : ""}.`;
     $("formWrap").classList.add("hidden"); $("doneWrap").classList.remove("hidden"); window.scrollTo(0, 0);
   } catch (e) {
@@ -873,7 +900,7 @@ async function loadFix() {
     document.querySelector(".hero h1").textContent = "Fix MDU Job #" + j.num;
     document.querySelector(".hero p").textContent = "A supervisor sent this job back. Read the note below, fix what's needed, and resubmit — it keeps the same job number.";
     $("fixCard").classList.remove("hidden"); $("fixTitle").textContent = `QC Job #${j.num} · Project ${j.project}`;
-    $("fixSub").textContent = `${j.company} · ${j.address}${j.apartment ? " · " + j.apartment : ""} · ${j.photoCount} photos already on file`;
+    $("fixSub").textContent = `${j.company} · ${j.address}${j.apartment ? " · " + j.apartment : ""}`;
     $("fixNote").innerHTML = `<b>Supervisor's note${j.reviewer ? " (" + esc(j.reviewer) + ")" : ""}</b>${esc(j.reviewNote) || "—"}`;
     if (!v("techName")) $("techName").value = j.tech || ""; if (!v("company")) $("company").value = j.company || ""; if (!v("email")) $("email").value = j.email || "";
     showMe(true);
@@ -883,7 +910,9 @@ async function loadFix() {
     $("lines").innerHTML = "";
     (j.lines.length ? j.lines : [{}]).forEach(l => { addLine(); const row = $("lines").lastElementChild;
       if (l.code) { row.querySelector("select").value = l.code; row.querySelector("select").onchange(); row.querySelector("input").value = l.qty; } });
-    $("minP").textContent = "0 (add any missing)"; $("submitBtn").textContent = "Resubmit job"; renderPhotos();
+    fix.photos = (j.photos || []).map(p => ({ ...p, removed: false }));
+    $("minP").parentElement.innerHTML = '<span class="pcount" id="pcount"></span>';
+    $("submitBtn").textContent = "Resubmit job"; renderOld(); renderPhotos();
   } catch (e) { alertMsg(e.message); }
   finally { $("submitBtn").disabled = false; if (!fix) $("submitBtn").disabled = !!document.querySelector("#fixCard:not(.hidden)"); $("status").textContent = ""; }
 }
