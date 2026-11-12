@@ -177,7 +177,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:0 20px 40px
 <script>
 // ===== SETTINGS — edit these, nothing else needs to change =====
 window.MDU_CONFIG = {
-  msal: { clientId: "b0485009-8585-4fcc-85f3-9494a7001d5c", tenantId: "a9ee6942-86dc-4c81-9083-05b5bce088bb" },
+  msal: { clientId: "b0485009-8585-4fcc-85f3-9494a7001d5c", tenantId: "a9ee6942-86dc-4c81-9083-05b5bce088bb" }, // Entra app registration
   sharepoint: { hostname: "triagepartnersinc.sharepoint.com", sitePath: "/sites/MDUQC", listName: "MDU QC Jobs", photoRoot: "MDU QC Photos" },
   weekEndingDay: 6,                // invoice export: 0 = Sunday … 6 = Saturday
   devGraphBase: "",                // local testing only — leave blank
@@ -267,7 +267,7 @@ function render() {
     <td>${esc(j.project)}<div class="sub">${esc(j.state)}</div></td>
     <td class="hs hm">${esc(j.address)}<div class="sub">${esc(j.apt)}</div></td>
     <td class="codes">${j.lines.map(l => `${esc(l.code)} <span class="sub">${l.qty} ${esc(l.um)}</span>`).join("<br>") || esc(j.linesText)}</td>
-    <td class="hs hm">${j.photos || 0}</td><td>${pill(j.status)}</td></tr>`).join("");
+    <td class="hs hm">${j.photos || 0}</td><td>${pill(j.status)}${j.status === "Pending" && /\|Resubmitted\|/.test(j.history) ? '<div class="sub" style="margin-top:4px">↻ Resubmitted</div>' : ""}</td></tr>`).join("");
   $("empty").classList.toggle("hidden", view.length > 0); if (!view.length) $("empty").textContent = "No jobs match these filters.";
   $("rows").querySelectorAll("tr").forEach(tr => tr.onclick = () => open(tr.dataset.id));
 }
